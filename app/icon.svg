@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#0a0e1a"/>
+    </linearGradient>
+    <linearGradient id="acc" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="100" fill="none" stroke="url(#acc)" stroke-width="14"/>
+  <circle cx="256" cy="256" r="36" fill="url(#acc)"/>
+  <g stroke="url(#acc)" stroke-width="14" stroke-linecap="round">
+    <line x1="256" y1="120" x2="256" y2="148"/>
+    <line x1="256" y1="364" x2="256" y2="392"/>
+    <line x1="120" y1="256" x2="148" y2="256"/>
+    <line x1="364" y1="256" x2="392" y2="256"/>
+    <line x1="160" y1="160" x2="180" y2="180"/>
+    <line x1="332" y1="332" x2="352" y2="352"/>
+    <line x1="352" y1="160" x2="332" y2="180"/>
+    <line x1="180" y1="332" x2="160" y2="352"/>
+  </g>
+</svg>
