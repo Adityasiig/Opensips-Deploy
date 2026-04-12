@@ -1,0 +1,3 @@
+[default]
+communication_type = fifo
+fifo_file = /var/run/opensips/opensips_fifo
