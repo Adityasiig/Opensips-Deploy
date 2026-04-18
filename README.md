@@ -1,4 +1,10 @@
 # opensips-deploy-local
+[![CI](https://github.com/Adityasiig/Opensips-Deploy/actions/workflows/ci.yml/badge.svg)](https://github.com/Adityasiig/Opensips-Deploy/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![PHP](https://img.shields.io/badge/PHP-8.2-777BB4?logo=php&logoColor=white)](https://www.php.net/)
+[![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](./Dockerfile)
+[![OpenSIPS](https://img.shields.io/badge/OpenSIPS-3.3-00A88C)](https://opensips.org)
+
 
 Self-contained, Docker-packaged version of the `opensips-deploy` UI.
 It behaves **exactly like the production app** — just without SSHing to any
