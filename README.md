@@ -135,9 +135,5 @@ BUNDLE_DIR=/path/to/bundle bash deploy-standalone.sh
 
 ## Troubleshooting
 
-| Symptom | Fix |
-|---|---|
-| "Bundle directory not found" in deploy logs | Make sure `bundle/` is present next to `docker-compose.yml` and volume mount is correct |
-| Port 8080 already in use | Change `8080:80` to another host port in `docker-compose.yml` |
-| Deploy logs empty | Check host `logs/` directory - that's where `.log`, `.status`, `.pid` land |
-| MySQL import fails on target | Target needs MySQL reachable with credentials matching the `DB_USER`/`DB_PASS` in the script; override via env vars in `docker-compose.yml` |
+
+(Table trimmed - see the deploy scripts for the current behaviour.)
