@@ -11,6 +11,36 @@ It behaves **exactly like the production app** — just without SSHing to any
 remote "source" server to pull configs. Everything it needs to deploy is
 bundled into the `bundle/` directory.
 
+
+## Architecture
+
+```mermaid
+flowchart LR
+    UI["Web UI<br/>PHP + Apache :80"]:::app
+    SH["deploy.sh<br/>deploy-fresh.sh<br/>deploy-standalone.sh"]:::app
+    BUNDLE[("bundle/<br/>opensips.cfg<br/>opensips_dump.sql<br/>opensips-cp.tar.gz")]:::data
+    TGT["Target server<br/>(fresh or existing OpenSIPS)"]:::target
+
+    subgraph Local["Your laptop (Docker)"]
+        UI
+        SH
+        BUNDLE
+    end
+
+    UI -->|triggers| SH
+    SH -->|reads| BUNDLE
+    SH -->|SSH + scp| TGT
+
+    classDef app fill:#fff3e0,stroke:#f57c00,color:#000
+    classDef data fill:#f3e5f5,stroke:#7b1fa2,color:#000
+    classDef target fill:#e8f5e9,stroke:#388e3c,color:#000
+```
+
+The `bundle/` directory is the snapshot of a working OpenSIPS source — no
+live SSH to a remote source server is needed at deploy time. Users bring
+their own bundle (see [`examples/`](./examples) for templates and
+[`bundle/README.md`](./bundle/README.md) for the expected layout).
+
 ## What's inside
 
 ```
