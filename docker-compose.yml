@@ -1,0 +1,23 @@
+services:
+  opensips-deploy:
+    build: .
+    image: opensips-deploy-local:latest
+    container_name: opensips-deploy-local
+    ports:
+      # Change the host side if 8080 is taken on your machine.
+      - "8080:80"
+    volumes:
+      # Live-edit the app without rebuilding the image.
+      - ./app:/var/www/html/opensips-deploy
+      # Bundle is mounted read-only -- the scripts only need to read from it.
+      - ./bundle:/var/www/html/opensips-deploy/bundle:ro
+      # Persist deploy logs on the host so you can inspect after container exits.
+      - ./logs:/var/www/html/opensips-deploy/logs
+    restart: unless-stopped
+    environment:
+      # These override the defaults in deploy*.sh if you want to change credentials
+      # used when talking to the TARGET's MySQL. Leave empty to use the baked-in
+      # defaults (root / mcm852258 / opensips).
+      - DB_USER=
+      - DB_PASS=
+      - DB_NAME=
