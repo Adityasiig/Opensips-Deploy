@@ -48,6 +48,14 @@ RUN mkdir -p /var/www/html/opensips-deploy/logs \
 RUN printf '<?php header("Location: /opensips-deploy/"); ?>\n' > /var/www/html/index.php
 
 # Keep default Apache port
+
+# First-run bundle seeding
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["apache2-foreground"]
+
 EXPOSE 80
 
 # Default command is apache-foreground from the base image.
