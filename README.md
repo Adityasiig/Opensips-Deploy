@@ -45,45 +45,75 @@ expected layout.
 ## What's inside
 
 ```
-opensips-deploy-local/
-├── Dockerfile                  # PHP 8.2 + Apache + sshpass + mysql-client
-├── docker-compose.yml          # One-command stand-up
-├── app/                        # The PHP/bash deploy UI
-│   ├── index.php               # Dashboard
-│   ├── deploy.php              # Endpoint called by the UI
-│   ├── deploy.sh               # Upgrade path (target already has opensips)
-│   ├── deploy-fresh.sh         # Fresh install on a new target
-│   ├── deploy-standalone.sh    # Run directly on a target, no UI
-│   └── logs/                   # Deploy output (host-mounted)
-└── bundle/                     # Source snapshot (no SSH needed)
-    ├── opensips.cfg            # Main SIP routing config
-    ├── opensips-cli.cfg
-    ├── scenario_callcenter.xml
-    ├── getip.sh
-    ├── opensips-cp.tar.gz      # Control Panel (tar'd)
-    └── opensips_dump.sql       # Full MySQL dump of the `opensips` DB
+Opensips-Deploy/
+├── Dockerfile              # PHP 8.2 + Apache + sshpass + mysql-client
+├── docker-compose.yml      # one-command stand-up
+├── .dockerignore
+├── .editorconfig           # LF / UTF-8 / consistent indent
+├── .env.example            # overridable env vars for the deploy scripts
+├── .gitignore              # excludes real bundle/ content
+├── .github/
+│   ├── ISSUE_TEMPLATE/     # bug + feature forms
+│   ├── pull_request_template.md
+│   └── workflows/ci.yml    # shellcheck + hadolint + php -l + docker build
+├── CONTRIBUTING.md         # how to contribute
+├── SECURITY.md             # vulnerability reporting
+├── LICENSE                 # MIT
+├── app/                    # the PHP/bash deploy UI
+│   ├── index.php           # dashboard
+│   ├── deploy.php          # endpoint called by the UI
+│   ├── deploy.sh           # upgrade flow (target already has opensips)
+│   ├── deploy-fresh.sh     # fresh install on a clean target
+│   ├── deploy-standalone.sh# run directly on a target, no UI
+│   ├── icon.svg
+│   ├── manifest.json
+│   ├── servers.json        # empty starter, UI writes to it
+│   ├── users.json          # empty starter, UI writes to it
+│   └── logs/               # deploy output (host-mounted)
+├── bundle/                 # YOUR snapshot goes here (gitignored)
+│   └── README.md           # expected layout + refresh commands
+└── examples/               # sanitized templates for bundle/
+    ├── opensips.cfg.example
+    ├── opensips-cli.cfg.example
+    ├── scenario_callcenter.xml.example
+    └── getip.sh.example
 ```
 
-The bundle was captured from a working OpenSIPS server. When you deploy to a
-target, the scripts read from `bundle/` instead of SSHing to a hardcoded
-source - so you can run this anywhere with Docker and a network path to the
-target(s).
+The real `bundle/` contents (opensips.cfg with creds, DB dump, opensips-cp
+tarball) are **gitignored**. Each user drops their own snapshot in on clone.
+`examples/` has sanitized templates to start from.
 
 ## Quick start
 
 ### 1. Prerequisites
 - **Docker Desktop** (Windows, macOS) or **Docker Engine + Compose** (Linux)
 - Network reachability to the TARGET server(s) you want to deploy to
+- A snapshot of a working OpenSIPS source to put in `bundle/` (see below)
 
-### 2. Start the UI
+### 2. Clone and populate `bundle/`
 ```bash
-cd opensips-deploy-local
+git clone https://github.com/Adityasiig/Opensips-Deploy.git
+cd Opensips-Deploy
+
+# copy the example templates as a starting point
+cp examples/opensips.cfg.example         bundle/opensips.cfg
+cp examples/opensips-cli.cfg.example     bundle/opensips-cli.cfg
+cp examples/scenario_callcenter.xml.example bundle/scenario_callcenter.xml
+cp examples/getip.sh.example             bundle/getip.sh
+# then replace CHANGE_ME_* placeholders with real values in bundle/opensips.cfg
+
+# supply the non-template artifacts too
+# (regenerate from a working OpenSIPS server - see below)
+```
+
+### 3. Start the UI
+```bash
 docker compose up -d --build
 ```
 
 Open <http://localhost:8080/opensips-deploy/> in a browser.
 
-### 3. Deploy to a target
+### 4. Deploy to a target
 Use the web UI to add a target server (its IP, SSH user, passwords) and pick
 **fresh install** or **upgrade existing**. The UI runs the corresponding
 script inside the container; the script reads from `bundle/` and pushes to
@@ -98,20 +128,24 @@ inside the Linux container.
 ## Refreshing the bundle
 
 If the source config drifts and you want a new snapshot, capture from any
-working OpenSIPS box and drop the artifacts into `bundle/`:
+working OpenSIPS box and drop the artifacts into `bundle/`. The full list is
+in [`bundle/README.md`](./bundle/README.md); short version:
 
 ```bash
-# on the reference server
-sudo cp /etc/opensips/opensips.cfg ./bundle/
-sudo cp /etc/opensips/opensips-cli.cfg ./bundle/
-sudo cp /etc/opensips/scenario_callcenter.xml ./bundle/
-sudo cp /etc/opensips/getip.sh ./bundle/
+# on the reference OpenSIPS server
+sudo cp /etc/opensips/opensips.cfg              ./bundle/
+sudo cp /etc/opensips/opensips-cli.cfg          ./bundle/  2>/dev/null || true
+sudo cp /etc/opensips/scenario_callcenter.xml   ./bundle/  2>/dev/null || true
+sudo cp /etc/opensips/getip.sh                  ./bundle/  2>/dev/null || true
 sudo tar czf ./bundle/opensips-cp.tar.gz -C /var/www/html opensips-cp
 mysqldump -uroot -p<password> opensips > ./bundle/opensips_dump.sql
 
 # then on the machine running docker
 docker compose restart
 ```
+
+`examples/` has sanitized stand-ins for the small config files - if you just
+want to try the UI without a real OpenSIPS source, start from those.
 
 ## Deploy-standalone mode
 
@@ -127,12 +161,25 @@ BUNDLE_DIR=/path/to/bundle bash deploy-standalone.sh
 
 - `app/users.json` and `app/servers.json` ship **empty**. Add your own admin
   account through the UI's first-run flow.
-- The bundle may contain database credentials inside `opensips_dump.sql` and
-  `opensips.cfg`. Treat this zip/image as sensitive; don't publish it.
-- The deploy scripts still use `sshpass` for target access. That's fine for a
-  lab / internal tool; for production use consider key-based auth.
+- The bundle contains real credentials inside `opensips_dump.sql` and
+  `opensips.cfg`. Treat the populated `bundle/` directory as sensitive; do
+  not publish it. The repo's `.gitignore` keeps its contents out of git.
+- The deploy scripts still use `sshpass` for target access. That's fine for
+  a lab / internal tool; for production consider key-based auth.
+- See [`SECURITY.md`](./SECURITY.md) for vulnerability reporting.
 
 ## Troubleshooting
 
+| Symptom | Fix |
+|---|---|
+| `Bundle directory not found` in deploy logs | Make sure `bundle/` exists next to `docker-compose.yml` and has at least `opensips.cfg` + `opensips_dump.sql` in it |
+| `Bundle missing opensips_dump.sql` / `opensips.cfg` | Populate those from a real OpenSIPS source (see **Refreshing the bundle**) |
+| Port 8080 already in use | Change `8080:80` in `docker-compose.yml` to another host port |
+| Deploy logs empty | Check the host `logs/` directory - that is where `.log` / `.status` / `.pid` files land |
+| MySQL import fails on target | Target must have MySQL reachable with credentials that match the `DB_USER` / `DB_PASS` in the scripts; override via env vars in `docker-compose.yml` |
+| CI failing on your fork | Shellcheck and hadolint are strict; run them locally (`shellcheck app/*.sh`, `hadolint Dockerfile`) before pushing |
 
-(Table trimmed - see the deploy scripts for the current behaviour.)
+## Contributing
+
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md). Bugs / feature requests go through
+the issue templates in `.github/ISSUE_TEMPLATE/`.
