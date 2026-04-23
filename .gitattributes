@@ -1,0 +1,31 @@
+# force LF for shell scripts so Windows checkouts don't break Linux containers
+*.sh        text eol=lf
+*.bash      text eol=lf
+
+# entrypoint must be LF or Docker exec fails with "no such file or directory"
+docker-entrypoint.sh text eol=lf
+
+# normal text files
+*.md        text
+*.txt       text
+*.json      text
+*.yml       text
+*.yaml      text
+*.php       text
+*.html      text
+*.css       text
+*.js        text
+*.cfg       text
+*.xml       text
+*.example   text
+
+# images / archives - never touch
+*.png       binary
+*.jpg       binary
+*.jpeg      binary
+*.gif       binary
+*.svg       text
+*.ico       binary
+*.tar.gz    binary
+*.zip       binary
+*.gpg       binary
