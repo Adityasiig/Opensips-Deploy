@@ -9,10 +9,9 @@
 > **Status:** initial public release - `v0.1.0`. Docker build and CI are green.
 > See the [Releases](https://github.com/Adityasiig/Opensips-Deploy/releases) page for changelog.
 
-Self-contained, Docker-packaged version of the `opensips-deploy` UI.
-It behaves **exactly like the production app** - just without SSHing to any
-remote "source" server to pull configs. Everything it needs to deploy is
-bundled into the `bundle/` directory.
+Docker-wrapped version of the opensips-deploy UI. Same app, except it
+doesn't need to SSH to a central "source" server at deploy time - it reads
+its snapshot from the bundled `bundle/` directory instead.
 
 
 ## Architecture
