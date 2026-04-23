@@ -1,8 +1,10 @@
 # bundle/
 
-Drop a snapshot of your OpenSIPS source here before `docker compose up`.
+Your OpenSIPS source snapshot goes here. On first container start, the
+Docker entrypoint seeds this directory from the demo templates in
+`../examples/` so the UI has something to load.
 
-Expected layout:
+## Expected layout for production
 
 ```
 bundle/
@@ -14,51 +16,50 @@ bundle/
 └── opensips_dump.sql       # required (MySQL opensips DB)
 ```
 
-See [`examples/`](../examples) for sanitized templates.
+## Telling demo from real
 
-## Regenerating the bundle
+The entrypoint creates `.demo-seed` when it seeds from the demo templates.
+If you see that file, you are running on demo content and deploys will
+fail with empty-data errors. Populate real files, then delete `.demo-seed`
+if you want the marker gone.
 
-From a working OpenSIPS server:
+## Regenerating from a real OpenSIPS source
 
 ```bash
 cd /path/to/Opensips-Deploy
 BUNDLE=./bundle
 
-# 1. OpenSIPS configs
 sudo cp /etc/opensips/opensips.cfg              "$BUNDLE/"
 sudo cp /etc/opensips/opensips-cli.cfg          "$BUNDLE/"  2>/dev/null || true
 sudo cp /etc/opensips/scenario_callcenter.xml   "$BUNDLE/"  2>/dev/null || true
 sudo cp /etc/opensips/getip.sh                  "$BUNDLE/"  2>/dev/null || true
 
-# 2. Control Panel
 sudo tar czf "$BUNDLE/opensips-cp.tar.gz" -C /var/www/html opensips-cp
 
-# 3. Database dump
 mysqldump -uroot -p<password> opensips > "$BUNDLE/opensips_dump.sql"
 
-# 4. Reload the running container (if already up)
+rm -f "$BUNDLE/.demo-seed"     # optional
+
 docker compose restart
 ```
 
-## Verifying the bundle
+## Verifying
 
 ```bash
 ls -la bundle/
-# opensips.cfg should be > 1 KB
-# opensips_dump.sql should contain CREATE TABLE statements:
+# opensips.cfg > 1 KB; opensips_dump.sql should contain real CREATE TABLE rows:
 grep -c "^CREATE TABLE" bundle/opensips_dump.sql
-# opensips-cp.tar.gz should extract cleanly:
 tar -tzf bundle/opensips-cp.tar.gz | head
 ```
 
 ## Security
 
-These files contain **real credentials and subscriber data**:
+Real bundle contents contain **real credentials and subscriber data**:
 
-- `opensips.cfg` has the MySQL connection string (`mysql://USER:PASS@...`).
+- `opensips.cfg` has the MySQL connection string.
 - `opensips_dump.sql` contains subscriber passwords, SIP credentials,
-  and call-accounting records (`acc` table).
+  and call-accounting records.
 - `opensips-cp.tar.gz` contains control-panel DB creds and admin hashes.
 
-Treat the directory as secret material. Never commit its contents - the
-repo's `.gitignore` excludes everything here except placeholders.
+Treat the directory as secret material. The repo's `.gitignore` excludes
+everything here except `README.md` and the `.gitkeep` placeholder.

@@ -11,7 +11,9 @@
 
 Docker-wrapped version of the opensips-deploy UI. Same app, except it
 doesn't need to SSH to a central "source" server at deploy time - it reads
-its snapshot from the bundled `bundle/` directory instead.
+its snapshot from the bundled `bundle/` directory instead. First run is
+zero-setup: the container seeds `bundle/` from built-in templates so the UI
+comes up immediately.
 
 
 ## Architecture
@@ -38,9 +40,9 @@ Rough shape of it:
 ```
 
 The `bundle/` directory is the snapshot of a working OpenSIPS source, so
-there is no live SSH to a remote source server at deploy time. Bring your
-own bundle; see `examples/` for templates and `bundle/README.md` for the
-expected layout.
+there is no live SSH to a remote source server at deploy time. On first
+container start an entrypoint seeds `bundle/` from the demo templates in
+`examples/`. For real deploys you replace `bundle/*` with a real snapshot.
 
 ## What's inside
 
@@ -48,6 +50,7 @@ expected layout.
 Opensips-Deploy/
 ├── Dockerfile              # PHP 8.2 + Apache + sshpass + mysql-client
 ├── docker-compose.yml      # one-command stand-up
+├── docker-entrypoint.sh    # seeds bundle/ from examples/ on first start
 ├── .dockerignore
 ├── .editorconfig           # LF / UTF-8 / consistent indent
 ├── .env.example            # overridable env vars for the deploy scripts
@@ -72,16 +75,17 @@ Opensips-Deploy/
 │   └── logs/               # deploy output (host-mounted)
 ├── bundle/                 # YOUR snapshot goes here (gitignored)
 │   └── README.md           # expected layout + refresh commands
-└── examples/               # sanitized templates for bundle/
+└── examples/               # sanitized templates used to seed bundle/
     ├── opensips.cfg.example
     ├── opensips-cli.cfg.example
     ├── scenario_callcenter.xml.example
-    └── getip.sh.example
+    ├── getip.sh.example
+    └── opensips_dump.sql.example   # minimal schema-only SQL
 ```
 
-The real `bundle/` contents (opensips.cfg with creds, DB dump, opensips-cp
-tarball) are **gitignored**. Each user drops their own snapshot in on clone.
-`examples/` has sanitized templates to start from.
+The real `bundle/` contents (opensips.cfg with creds, full DB dump,
+opensips-cp tarball) are **gitignored**. `examples/` ships sanitized demo
+templates that the entrypoint copies into `bundle/` on first start.
 
 ## Quick start
 
@@ -93,14 +97,30 @@ docker compose up -d --build
 
 Open <http://localhost:8080/opensips-deploy/> in a browser.
 
-That's it. On first start the container seeds `bundle/` from the templates
-in `examples/` so the UI has something to load.
+That's it. The entrypoint seeds `bundle/` from `examples/` the first time,
+so the UI loads immediately and the container becomes clickable.
 
-For real deploys you replace `bundle/*` with a snapshot of a working
-OpenSIPS source (see **Refreshing the bundle** below). The demo seed is
-enough to click around the UI and sanity-check the Docker setup - it is
-not enough to actually deploy SIP calls to a target.
+## Demo vs production
 
+The demo seed is enough to:
+- Click around the UI
+- Verify the Docker build is healthy
+- Sanity-check the CI pipeline
+
+It is **not** enough to actually deploy SIP calls. The demo SQL is a
+schema-only stub; there are no subscribers, gateways, or dialplans.
+
+When you are ready for real deploys, drop a real snapshot in `bundle/`
+(see [Refreshing the bundle](#refreshing-the-bundle)). The entrypoint
+creates `bundle/.demo-seed` when it seeds demo content, so you can tell
+which mode you are in:
+
+```bash
+# you are running on demo content if this file exists
+ls bundle/.demo-seed
+```
+
+Remove that file after you populate real data, or just ignore it.
 
 ## Windows-specific notes
 
@@ -110,9 +130,10 @@ inside the Linux container.
 
 ## Refreshing the bundle
 
-If the source config drifts and you want a new snapshot, capture from any
-working OpenSIPS box and drop the artifacts into `bundle/`. The full list is
-in [`bundle/README.md`](./bundle/README.md); short version:
+Replace the demo seed with a real snapshot captured from a working OpenSIPS
+server. The entrypoint never overwrites existing files, so your real data
+stays put across restarts. The full list of expected artifacts lives in
+[`bundle/README.md`](./bundle/README.md); short version:
 
 ```bash
 # on the reference OpenSIPS server
@@ -123,12 +144,20 @@ sudo cp /etc/opensips/getip.sh                  ./bundle/  2>/dev/null || true
 sudo tar czf ./bundle/opensips-cp.tar.gz -C /var/www/html opensips-cp
 mysqldump -uroot -p<password> opensips > ./bundle/opensips_dump.sql
 
-# then on the machine running docker
+# optional: clear the demo-seed marker so it's obviously real data
+rm -f ./bundle/.demo-seed
+
+# on the machine running docker
 docker compose restart
 ```
 
-`examples/` has sanitized stand-ins for the small config files - if you just
-want to try the UI without a real OpenSIPS source, start from those.
+To force a fresh reseed from templates, empty the `bundle/` directory
+(keep `README.md`) before restarting:
+
+```bash
+find ./bundle -mindepth 1 -not -name README.md -delete
+docker compose restart
+```
 
 ## Deploy-standalone mode
 
@@ -144,9 +173,10 @@ BUNDLE_DIR=/path/to/bundle bash deploy-standalone.sh
 
 - `app/users.json` and `app/servers.json` ship **empty**. Add your own admin
   account through the UI's first-run flow.
-- The bundle contains real credentials inside `opensips_dump.sql` and
-  `opensips.cfg`. Treat the populated `bundle/` directory as sensitive; do
-  not publish it. The repo's `.gitignore` keeps its contents out of git.
+- Demo content in `examples/` is public and safe - no real credentials.
+- A populated `bundle/` contains real credentials (MySQL in `opensips.cfg`,
+  subscriber/accounting data in `opensips_dump.sql`). Treat the directory
+  as sensitive; the repo's `.gitignore` keeps its contents out of git.
 - The deploy scripts still use `sshpass` for target access. That's fine for
   a lab / internal tool; for production consider key-based auth.
 - See [`SECURITY.md`](./SECURITY.md) for vulnerability reporting.
@@ -155,12 +185,13 @@ BUNDLE_DIR=/path/to/bundle bash deploy-standalone.sh
 
 | Symptom | Fix |
 |---|---|
-| `Bundle directory not found` in deploy logs | Make sure `bundle/` exists next to `docker-compose.yml` and has at least `opensips.cfg` + `opensips_dump.sql` in it |
-| `Bundle missing opensips_dump.sql` / `opensips.cfg` | Populate those from a real OpenSIPS source (see **Refreshing the bundle**) |
-| Port 8080 already in use | Change `8080:80` in `docker-compose.yml` to another host port |
-| Deploy logs empty | Check the host `logs/` directory - that is where `.log` / `.status` / `.pid` files land |
-| MySQL import fails on target | Target must have MySQL reachable with credentials that match the `DB_USER` / `DB_PASS` in the scripts; override via env vars in `docker-compose.yml` |
-| CI failing on your fork | Shellcheck and hadolint are strict; run them locally (`shellcheck app/*.sh`, `hadolint Dockerfile`) before pushing |
+| UI loads but deploys fail with "no subscribers" / "no gateways" | You're running on the demo seed. Populate `bundle/` with real data (see **Refreshing the bundle**). |
+| I want a fresh demo seed | Delete `bundle/*` (keep `bundle/README.md`) and restart the container. |
+| Port 8080 already in use | Change `8080:80` in `docker-compose.yml` to another host port. |
+| Deploy logs empty | Check the host `logs/` directory - that is where `.log` / `.status` / `.pid` files land. |
+| MySQL import fails on target | Target must have MySQL reachable with credentials that match the `DB_USER` / `DB_PASS` in the scripts; override via env vars in `docker-compose.yml`. |
+| Entrypoint says "bundle/ looks empty" every time | The volume mount path is wrong or not writable. Check `docker-compose.yml` has `- ./bundle:/var/www/html/opensips-deploy/bundle` (no `:ro`). |
+| CI failing on your fork | Shellcheck and hadolint are strict; run them locally (`shellcheck app/*.sh`, `hadolint Dockerfile`) before pushing. |
 
 ## Contributing
 
