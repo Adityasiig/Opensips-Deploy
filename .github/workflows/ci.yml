@@ -1,3 +1,6 @@
+# CI for opensips-deploy-local.
+# Keep it cheap: shellcheck + hadolint are fast, docker build is the long one.
+# If you add a new language/tool, gate the heavy job behind `needs:`.
 name: CI
 
 on:
