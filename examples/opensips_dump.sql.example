@@ -1,0 +1,72 @@
+-- Minimal opensips schema for demo / first-run use.
+-- Replace this file with a real `mysqldump -uroot -p<pwd> opensips > opensips_dump.sql`
+-- before doing any production deploys.
+
+CREATE DATABASE IF NOT EXISTS opensips CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE opensips;
+
+CREATE TABLE IF NOT EXISTS version (
+    table_name VARCHAR(32) NOT NULL PRIMARY KEY,
+    table_version INT UNSIGNED NOT NULL DEFAULT 0
+);
+
+CREATE TABLE IF NOT EXISTS subscriber (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    username CHAR(64) NOT NULL DEFAULT '',
+    domain   CHAR(64) NOT NULL DEFAULT '',
+    password CHAR(25) NOT NULL DEFAULT '',
+    email_address CHAR(64) NOT NULL DEFAULT '',
+    ha1  CHAR(64) NOT NULL DEFAULT '',
+    ha1b CHAR(64) NOT NULL DEFAULT '',
+    rpid CHAR(64) DEFAULT NULL,
+    UNIQUE KEY account_idx (username, domain)
+);
+
+CREATE TABLE IF NOT EXISTS dr_gateways (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    gwid VARCHAR(64) NOT NULL,
+    type INT NOT NULL DEFAULT 0,
+    address VARCHAR(128) NOT NULL,
+    strip INT NOT NULL DEFAULT 0,
+    pri_prefix VARCHAR(16) DEFAULT NULL,
+    attrs VARCHAR(255) DEFAULT NULL,
+    probe_mode INT NOT NULL DEFAULT 0,
+    state INT NOT NULL DEFAULT 0,
+    socket VARCHAR(128) DEFAULT NULL,
+    description VARCHAR(128) DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS dispatcher (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    setid INT NOT NULL DEFAULT 0,
+    destination VARCHAR(192) NOT NULL,
+    socket VARCHAR(128) DEFAULT NULL,
+    state INT NOT NULL DEFAULT 0,
+    weight INT NOT NULL DEFAULT 1,
+    priority INT NOT NULL DEFAULT 0,
+    attrs VARCHAR(128) DEFAULT NULL,
+    description VARCHAR(64) DEFAULT ''
+);
+
+CREATE TABLE IF NOT EXISTS acc (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    method VARCHAR(16) NOT NULL DEFAULT '',
+    from_tag VARCHAR(64) NOT NULL DEFAULT '',
+    to_tag VARCHAR(64) NOT NULL DEFAULT '',
+    callid VARCHAR(64) NOT NULL DEFAULT '',
+    sip_code VARCHAR(3) NOT NULL DEFAULT '',
+    sip_reason VARCHAR(32) NOT NULL DEFAULT '',
+    time DATETIME NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS domain (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    domain VARCHAR(64) NOT NULL DEFAULT '' UNIQUE
+);
+
+INSERT IGNORE INTO version VALUES
+    ('subscriber', 7),
+    ('dr_gateways', 3),
+    ('dispatcher', 8),
+    ('acc', 7),
+    ('domain', 3);
