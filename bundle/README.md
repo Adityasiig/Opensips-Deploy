@@ -60,5 +60,5 @@ These files contain **real credentials and subscriber data**:
   and call-accounting records (`acc` table).
 - `opensips-cp.tar.gz` contains control-panel DB creds and admin hashes.
 
-Treat the directory as secret material. Never commit its contents — the
+Treat the directory as secret material. Never commit its contents - the
 repo's `.gitignore` excludes everything here except placeholders.

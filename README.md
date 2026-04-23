@@ -6,11 +6,11 @@
 [![OpenSIPS](https://img.shields.io/badge/OpenSIPS-3.3-00A88C)](https://opensips.org)
 
 
-> **Status:** initial public release — `v0.1.0`. Docker build and CI are green.
+> **Status:** initial public release - `v0.1.0`. Docker build and CI are green.
 > See the [Releases](https://github.com/Adityasiig/Opensips-Deploy/releases) page for changelog.
 
 Self-contained, Docker-packaged version of the `opensips-deploy` UI.
-It behaves **exactly like the production app** — just without SSHing to any
+It behaves **exactly like the production app** - just without SSHing to any
 remote "source" server to pull configs. Everything it needs to deploy is
 bundled into the `bundle/` directory.
 
@@ -39,7 +39,7 @@ flowchart LR
     classDef target fill:#e8f5e9,stroke:#388e3c,color:#000
 ```
 
-The `bundle/` directory is the snapshot of a working OpenSIPS source — no
+The `bundle/` directory is the snapshot of a working OpenSIPS source - no
 live SSH to a remote source server is needed at deploy time. Users bring
 their own bundle (see [`examples/`](./examples) for templates and
 [`bundle/README.md`](./bundle/README.md) for the expected layout).
@@ -68,7 +68,7 @@ opensips-deploy-local/
 
 The bundle was captured from a working OpenSIPS server. When you deploy to a
 target, the scripts read from `bundle/` instead of SSHing to a hardcoded
-source — so you can run this anywhere with Docker and a network path to the
+source - so you can run this anywhere with Docker and a network path to the
 target(s).
 
 ## Quick start
@@ -94,7 +94,7 @@ the target over SSH.
 ## Windows-specific notes
 
 Works on Windows via **Docker Desktop** (WSL2 backend). No need to install
-`sshpass`, `mysql-client`, `sed`, etc. on Windows itself — all of that runs
+`sshpass`, `mysql-client`, `sed`, etc. on Windows itself - all of that runs
 inside the Linux container.
 
 ## Refreshing the bundle
@@ -140,5 +140,5 @@ BUNDLE_DIR=/path/to/bundle bash deploy-standalone.sh
 |---|---|
 | "Bundle directory not found" in deploy logs | Make sure `bundle/` is present next to `docker-compose.yml` and volume mount is correct |
 | Port 8080 already in use | Change `8080:80` to another host port in `docker-compose.yml` |
-| Deploy logs empty | Check host `logs/` directory — that's where `.log`, `.status`, `.pid` land |
+| Deploy logs empty | Check host `logs/` directory - that's where `.log`, `.status`, `.pid` land |
 | MySQL import fails on target | Target needs MySQL reachable with credentials matching the `DB_USER`/`DB_PASS` in the script; override via env vars in `docker-compose.yml` |

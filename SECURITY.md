@@ -3,7 +3,7 @@
 ## Supported versions
 
 Only the `main` branch receives security updates. Tagged releases are
-snapshots — if a tagged release is affected by an issue, the fix goes to
+snapshots - if a tagged release is affected by an issue, the fix goes to
 `main` and a new tag is cut.
 
 ## Reporting a vulnerability

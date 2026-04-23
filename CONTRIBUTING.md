@@ -34,8 +34,8 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 ## Reporting issues
 
 Use the issue templates (`.github/ISSUE_TEMPLATE/`):
-- **Bug report** — things that are broken
-- **Feature request** — things to add or change
+- **Bug report** - things that are broken
+- **Feature request** - things to add or change
 
 ## Security
 
