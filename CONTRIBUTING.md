@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for considering a contribution! This project is small; help is welcome.
+Thanks for looking. This project is small - happy to have help.
 
 ## Development setup
 
@@ -11,7 +11,7 @@ Thanks for considering a contribution! This project is small; help is welcome.
 
 ## Commit style
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
+Try to follow [Conventional Commits](https://www.conventionalcommits.org/). Nothing strict:
 
 | Prefix | Use |
 |---|---|
