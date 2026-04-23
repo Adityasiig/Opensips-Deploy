@@ -1,0 +1,21 @@
+# Bundle artifacts are user-supplied; never commit them.
+bundle/*
+!bundle/.gitkeep
+!bundle/README.md
+
+# Runtime / logs
+logs/*
+!logs/.gitkeep
+app/logs/*
+!app/logs/.gitkeep
+
+# Local overrides
+app/servers.json.local
+app/users.json.local
+app/device_lock.json
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
