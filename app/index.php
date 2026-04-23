@@ -117,7 +117,13 @@ function getAuditLog($lines = 100) {
 }
 
 // Initialize users file with default admin if it doesn't exist
-if (!file_exists(AUTH_FILE)) {
+$_existingUsers = file_exists(AUTH_FILE)
+    ? json_decode(file_get_contents(AUTH_FILE), true)
+    : null;
+$_needSeed = !is_array($_existingUsers)
+    || count($_existingUsers) === 0
+    || !isset($_existingUsers[0]['username']);
+if ($_needSeed) {
     $defaultUsers = [
         [
             'username' => 'admin',
@@ -154,7 +160,7 @@ if (isset($_POST['auth_action']) && $_POST['auth_action'] === 'login') {
     $users = loadUsers();
     $found = false;
     foreach ($users as $u) {
-        if ($u['username'] === $username && password_verify($password, $u['password'])) {
+        if (isset($u['username'], $u['password']) && $u['username'] === $username && password_verify($password, $u['password'])) {
             $_SESSION['logged_in'] = true;
             $_SESSION['username'] = $u['username'];
             $_SESSION['role'] = $u['role'] ?? 'viewer';
