@@ -10,7 +10,7 @@ services:
       # Live-edit the app without rebuilding the image.
       - ./app:/var/www/html/opensips-deploy
       # Bundle is mounted read-only -- the scripts only need to read from it.
-      - ./bundle:/var/www/html/opensips-deploy/bundle:ro
+      - ./bundle:/var/www/html/opensips-deploy/bundle
       # Persist deploy logs on the host so you can inspect after container exits.
       - ./logs:/var/www/html/opensips-deploy/logs
     restart: unless-stopped
