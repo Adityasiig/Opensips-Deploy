@@ -51,7 +51,9 @@ RUN printf '<?php header("Location: /opensips-deploy/"); ?>\n' > /var/www/html/i
 
 # First-run bundle seeding
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# strip CRLF in case the script was checked out on Windows with autocrlf
+RUN sed -i 's/\r$//' /usr/local/bin/docker-entrypoint.sh \
+ && chmod +x /usr/local/bin/docker-entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["apache2-foreground"]
