@@ -85,39 +85,22 @@ tarball) are **gitignored**. Each user drops their own snapshot in on clone.
 
 ## Quick start
 
-### 1. Prerequisites
-- **Docker Desktop** (Windows, macOS) or **Docker Engine + Compose** (Linux)
-- Network reachability to the TARGET server(s) you want to deploy to
-- A snapshot of a working OpenSIPS source to put in `bundle/` (see below)
-
-### 2. Clone and populate `bundle/`
 ```bash
 git clone https://github.com/Adityasiig/Opensips-Deploy.git
 cd Opensips-Deploy
-
-# copy the example templates as a starting point
-cp examples/opensips.cfg.example         bundle/opensips.cfg
-cp examples/opensips-cli.cfg.example     bundle/opensips-cli.cfg
-cp examples/scenario_callcenter.xml.example bundle/scenario_callcenter.xml
-cp examples/getip.sh.example             bundle/getip.sh
-# then replace CHANGE_ME_* placeholders with real values in bundle/opensips.cfg
-
-# supply the non-template artifacts too
-# (regenerate from a working OpenSIPS server - see below)
-```
-
-### 3. Start the UI
-```bash
 docker compose up -d --build
 ```
 
 Open <http://localhost:8080/opensips-deploy/> in a browser.
 
-### 4. Deploy to a target
-Use the web UI to add a target server (its IP, SSH user, passwords) and pick
-**fresh install** or **upgrade existing**. The UI runs the corresponding
-script inside the container; the script reads from `bundle/` and pushes to
-the target over SSH.
+That's it. On first start the container seeds `bundle/` from the templates
+in `examples/` so the UI has something to load.
+
+For real deploys you replace `bundle/*` with a snapshot of a working
+OpenSIPS source (see **Refreshing the bundle** below). The demo seed is
+enough to click around the UI and sanity-check the Docker setup - it is
+not enough to actually deploy SIP calls to a target.
+
 
 ## Windows-specific notes
 
